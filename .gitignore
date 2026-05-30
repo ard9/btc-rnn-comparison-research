@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+data/btc_data.csv
+results/checkpoints/
+results/plots/
+results/*.json
+results/*.csv
+.DS_Store
+*.egg-info/
+.ipynb_checkpoints/

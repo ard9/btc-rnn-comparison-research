@@ -1,0 +1,52 @@
+data:
+  ticker: "BTC-USD"
+  start_date: "2018-01-01"
+  end_date: "2024-01-01"
+  sequence_length: 60       # lookback window (days)
+  target_col: "Close"
+  features: ["Open", "High", "Low", "Close", "Volume"]
+  train_ratio: 0.70
+  val_ratio: 0.10
+  test_ratio: 0.20
+
+training:
+  epochs: 50
+  batch_size: 64
+  learning_rate: 0.001
+  patience: 10              # early stopping
+  device: "auto"            # auto | cpu | cuda
+
+models:
+  ann:
+    hidden_dims: [256, 128, 64]
+    dropout: 0.3
+
+  rnn:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  lstm:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  gru:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+  gan:
+    hidden_size: 128
+    num_layers: 2
+    noise_dim: 32
+    n_critic: 5             # WGAN-GP discriminator steps per generator step
+    lambda_gp: 10           # gradient penalty coefficient
+    lr_g: 0.0001
+    lr_d: 0.0001
+
+paths:
+  data_cache: "data/btc_data.csv"
+  results: "results/"
+  plots: "results/plots/"
+  checkpoints: "results/checkpoints/"

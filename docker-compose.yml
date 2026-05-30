@@ -1,0 +1,87 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# BTC Neural Network Comparison — Docker Compose
+#
+# GPU mode  (default):  docker compose up
+# CPU mode:             docker compose --profile cpu up btc-cpu
+# Evaluate only:        docker compose run --rm btc python evaluate.py
+# Train specific:       docker compose run --rm btc python main.py --models lstm gru
+# Skip GAN:             docker compose run --rm btc python main.py --skip-gan
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── GPU service (default) ───────────────────────────────────────────────────
+  btc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: btc-nn-comparison:latest
+    container_name: btc_nn_gpu
+    restart: "no"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      # Persist downloaded data and results on host
+      - ./data:/app/data
+      - ./results:/app/results
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: ["python", "main.py"]
+
+  # ── CPU-only service ────────────────────────────────────────────────────────
+  btc-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: btc-nn-comparison:latest
+    container_name: btc_nn_cpu
+    profiles: [cpu]
+    restart: "no"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - CUDA_VISIBLE_DEVICES=""
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+    command: ["python", "main.py", "--config", "config.yaml"]
+
+  # ── Jupyter notebook service ────────────────────────────────────────────────
+  notebook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: btc-nn-comparison:latest
+    container_name: btc_notebook
+    profiles: [notebook]
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+      - ./notebooks:/app/notebooks
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+      --NotebookApp.password=''
+      --notebook-dir=/app
